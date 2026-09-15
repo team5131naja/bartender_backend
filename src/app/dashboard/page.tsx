@@ -1,49 +1,37 @@
 "use client"
 
 import { AppSidebar } from "@/components/app-sidebar"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
 import { DataTable } from "@/components/data-table"
-import { SectionCards } from "@/components/section-cards"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function Page() {
+  const router = useRouter()
   const [data, setData] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     try {
-  //       const response = await fetch("/api/order")
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP error! status: ${response.status}`)
-  //       }
-  //       const result = await response.json()
+  useEffect(() => {
+    const isAuth = sessionStorage.getItem("authenticated")
+    if (isAuth !== "true") {
+      router.replace("/login")
+      return
+    }
+    setIsLoading(false)
+  }, [router])
 
-  //       const transformedData = result.map((item: any) => {
-  //         if (item.description == null) {
-  //           item.description = "No description available";
-  //         }
-  //         return item;
-  //       })
-        
-  //       console.log("Fetched data:", result)
-  //       setData(transformedData)
-  //     } catch (error) {
-  //       console.error("Error fetching data:", error)
-  //     } finally {
-  //       setIsLoading(false)
-  //     }
-  //   }
-
-  //   fetchData()
-  // }, [])
-
-  // Log whenever the state actually updates
   useEffect(() => {
     console.log("Data state updated:", data)
   }, [data])
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-zinc-200 border-t-black dark:border-zinc-700 dark:border-t-white" />
+      </div>
+    )
+  }
 
   return (
     <SidebarProvider
@@ -60,10 +48,6 @@ export default function Page() {
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-              {/* <SectionCards />
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
-              </div> */}
               <DataTable data={data} />
             </div>
           </div>

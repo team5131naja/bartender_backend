@@ -103,7 +103,10 @@ import {
   ChevronRightIcon,
   ChevronsRightIcon,
   TrendingUpIcon,
+  CheckIcon,
+  RobotArmIcon,
 } from "lucide-react";
+import { getMenuNameById } from "@/lib/utils";
 
 // New in v9: declare the features this table uses — anything you don't
 // register is tree-shaken out of the bundle.
@@ -169,6 +172,7 @@ const columns = columnHelper.columns([
   }),
   columnHelper.display({
     id: "select",
+
     header: ({ table }) => (
       <div className="flex items-center justify-center">
         <Checkbox
@@ -182,15 +186,36 @@ const columns = columnHelper.columns([
         />
       </div>
     ),
-    cell: ({ row }) => (
-      <div className="flex items-center justify-center">
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
+
+    cell: ({ row, table }) => {
+      const selectedRows = table.getFilteredSelectedRowModel().rows;
+
+      const selectedMenuId = selectedRows[0]?.original.menu_id;
+
+      const isDisabled =
+        selectedMenuId !== undefined && selectedMenuId !== row.original.menu_id;
+
+      return (
+        <div
+          className={`flex items-center justify-center ${
+            isDisabled ? "opacity-30 grayscale" : ""
+          }`}
+        >
+          <Checkbox
+            checked={row.getIsSelected()}
+            disabled={isDisabled}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+            className={
+              isDisabled
+                ? "cursor-not-allowed border-muted-foreground/30"
+                : "cursor-pointer"
+            }
+          />
+        </div>
+      );
+    },
+
     enableSorting: false,
     enableHiding: false,
   }),
@@ -224,6 +249,12 @@ const columns = columnHelper.columns([
       </Badge>
     ),
   }),
+  // columnHelper.display({
+  //   id: "accept",
+  //   cell: () => (
+  //     <Button>Accept</Button>
+  //   ),
+  // }),
   // columnHelper.accessor("target", {
   //   header: () => <div className="w-full text-right">Target</div>,
   //   cell: ({ row }) => (
@@ -374,6 +405,7 @@ export function DataTable({
     setData(initialData);
   }, [initialData]);
   const [rowSelection, setRowSelection] = React.useState({});
+
   const [columnVisibility, setColumnVisibility] =
     React.useState<ColumnVisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -435,18 +467,6 @@ export function DataTable({
     completed: 0,
   });
 
-  function menuId(id: number) {
-    const map: Record<number, string> = {
-      1: "Arnold Palmer Mocktail",
-      2: "Espresso Martini",
-      3: "Midori Sour",
-      4: "Butterfly Pea Lemonade",
-      5: "Black Russian",
-    };
-
-    return map[id] ?? "Unknown Menu Item";
-  }
-
   async function fetchCount() {
     try {
       const res = await fetch("/api/orders/count", {
@@ -469,49 +489,85 @@ export function DataTable({
     // return () => clearInterval(interval);
   }, []);
 
+  const fetchDataForView = async () => {
+    setIsLoading(true);
+    try {
+      if (view === "outline") {
+        const res = await fetch(`/api/orders`);
+        if (!res.ok) throw new Error("Failed to fetch");
+        const result = await res.json();
+        // Filter out cancelled orders from Incoming view
+        const filtered = result.filter(
+          (item: any) => item.status !== "cancelled",
+        );
+        const transformed = filtered.map((item: any) => ({
+          ...item,
+          menu_id: getMenuNameById(item.menu_id),
+          description: item.description ?? "No description available",
+        }));
+        setData(transformed);
+        return;
+      }
+      const res = await fetch(`/api/orders?status=${view}`);
+      if (!res.ok) throw new Error("Failed to fetch");
+      const result = await res.json();
+      // Transform data if needed (like you did in parent)
+      const transformed = result.map((item: any) => ({
+        ...item,
+        menu_id: getMenuNameById(item.menu_id),
+        description: item.description ?? "No description available",
+      }));
+      console.log("Fetched data for view:", view, transformed);
+      setData(transformed);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fetch data when view changes
   React.useEffect(() => {
     console.log("Fetching data for view:", view);
-    const fetchDataForView = async () => {
-      setIsLoading(true);
-      try {
-        if (view === "outline") {
-          const res = await fetch(`/api/orders`);
-          if (!res.ok) throw new Error("Failed to fetch");
-          const result = await res.json();
-          // Transform data if needed (like you did in parent)
-          const transformed = result.map((item: any) => ({
-            ...item,
-            menu_id: menuId(item.menu_id),
-            description: item.description ?? "No description available",
-          }));
-          setData(transformed);
-          return;
-        }
-        const res = await fetch(`/api/orders?status=${view}`);
-        if (!res.ok) throw new Error("Failed to fetch");
-        const result = await res.json();
-        // Transform data if needed (like you did in parent)
-        const transformed = result.map((item: any) => ({
-          ...item,
-          menu_id: menuId(item.menu_id),
-          description: item.description ?? "No description available",
-        }));
-        console.log("Fetched data for view:", view, transformed);
-        setData(transformed);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
     fetchDataForView();
+
+    // const interval = setInterval(fetchDataForView, 2000);
+
+    // return () => clearInterval(interval);
   }, [view]); // Re-fetch when view changes
+
+  // Auto-refresh data every 5 seconds
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      fetchDataForView();
+      fetchCount();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [view]);
 
   React.useEffect(() => {
     console.log("Data view updated:", data);
   }, [view]);
+
+  async function acceptOrder() {
+    const selectedRows = table
+      .getFilteredSelectedRowModel()
+      .rows.map((row) => row.original);
+    console.log(selectedRows);
+
+    const res = await fetch(`/api/orders`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ menus: selectedRows }),
+    });
+
+    console.log(await res.json());
+  }
 
   return (
     <Tabs
@@ -541,60 +597,49 @@ export function DataTable({
               <SelectItem value="outline">Incoming</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
               <SelectItem value="key-personnel">Prepared</SelectItem>
-              <SelectItem value="focus-documents">Cancelled</SelectItem>
+              <SelectItem value="focus-documents">Completed</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
         <TabsList className="hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:bg-muted-foreground/30 **:data-[slot=badge]:px-1 @4xl/main:flex">
           <TabsTrigger value="outline">
-            Incoming {count !== null && count.pending !== 0 ? (<Badge variant="secondary">{count.pending}</Badge>) : null}
+            Incoming{" "}
+            {count !== null && count.pending !== 0 ? (
+              <Badge variant="secondary">{count.pending}</Badge>
+            ) : null}
           </TabsTrigger>
           <TabsTrigger value="cancelled">
-            Cancelled {count !== null && count.cancelled !== 0 ? (<Badge variant="secondary">{count.cancelled}</Badge>) : null}
+            Cancelled{" "}
+            {count !== null && count.cancelled !== 0 ? (
+              <Badge variant="secondary">{count.cancelled}</Badge>
+            ) : null}
           </TabsTrigger>
           <TabsTrigger value="key-personnel">
-            Prepared {count !== null && count.prepared !== 0 ? (<Badge variant="secondary">{count.prepared}</Badge>) : null}
+            Prepared{" "}
+            {count !== null && count.prepared !== 0 ? (
+              <Badge variant="secondary">{count.prepared}</Badge>
+            ) : null}
           </TabsTrigger>
           <TabsTrigger value="focus-documents">
-            Cancelled {count !== null && count.cancelled !== 0 ? (<Badge variant="secondary">{count.cancelled}</Badge>) : null}
+            Completed{" "}
+            {count !== null && count.completed !== 0 ? (
+              <Badge variant="secondary">{count.completed}</Badge>
+            ) : null}
           </TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={<Button variant="outline" size="sm" />}
-            >
-              <Columns3Icon data-icon="inline-start" />
-              Columns
-              <ChevronDownIcon data-icon="inline-end" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-32">
-              {table
-                .getAllColumns()
-                .filter(
-                  (column) =>
-                    typeof column.accessorFn !== "undefined" &&
-                    column.getCanHide(),
-                )
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <PlusIcon />
-            <span className="hidden lg:inline">Add Section</span>
+          <Button
+            size="sm"
+            onClick={acceptOrder}
+            disabled={
+              table.getFilteredSelectedRowModel().rows.length == 0
+                ? true
+                : false
+            }
+          >
+            {/* <CheckIcon /> */}
+            <span className="hidden lg:inline">Send to DOBOT</span>
+            <RobotArmIcon />
           </Button>
         </div>
       </div>
