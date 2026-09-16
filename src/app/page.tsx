@@ -44,19 +44,14 @@ export default function Home() {
           const orderRes = await fetch(
             `/api/orders?uuid=${encodeURIComponent(orderUuid)}`,
           );
-          const orderData = await orderRes.json();
+          if (orderRes.ok) {
+            const orderData = await orderRes.json();
 
-          if (orderData.success && orderData.data) {
-            // If order is still active, show its status
-            if (orderData.data.status !== "completed" && orderData.data.status !== "cancelled") {
+            if (orderData.success && orderData.data) {
               setOrder(orderData.data);
               setLoading(false);
               return;
             }
-            // If completed or cancelled, show that then let them order again
-            setOrder(orderData.data);
-            setLoading(false);
-            return;
           }
           // Order not found, clear stored uuid
           localStorage.removeItem("orderUuid");
@@ -64,8 +59,10 @@ export default function Home() {
 
         // No active order — fetch menu to show
         const menuRes = await fetch("/api/menu");
-        const menuData = await menuRes.json();
-        setMenu(menuData.data);
+        if (menuRes.ok) {
+          const menuData = await menuRes.json();
+          setMenu(menuData.data);
+        }
       } catch (err) {
         console.error("Error:", err);
       } finally {
