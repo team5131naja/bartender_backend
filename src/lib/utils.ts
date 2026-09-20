@@ -6,11 +6,17 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const menuMap: Record<number, string> = {
-    1: "Arnold Palmer Mocktail",
-    2: "Espresso Martini",
-    3: "Midori Sour",
-    4: "Butterfly Pea Lemonade",
-    5: "Black Russian",
+    1: "Cosmopolitan",
+    2: "Magic Gimlet",
+    3: "Pineapple Gin Sour",
+    4: "Bay Breeze",
+    5: "Tom Collins",
+    6: "Vodka Sour",
+    7: "Magic Lemonade",
+    8: "Cranberry Cooler",
+    9: "Pineapple Fizz",
+    10: "Sunset Punch",
+    11: "Butterfly Pineapple",
   };
 
 export function getMenuNameById(id: number) {

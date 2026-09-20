@@ -1,6 +1,7 @@
 import { dbAll, dbGet, dbRun } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { sendOrder } from "@/lib/socket";
 
 // GET: fetch orders (with optional uuid or status filter)
 export async function GET(request: Request) {
@@ -46,11 +47,35 @@ export async function GET(request: Request) {
   }
 }
 
-// POST: create a new order with menu selection and customer name
+// POST: create a new order OR accept orders (dashboard)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
 
+    // Dashboard: accept selected orders → set status to "preparing"
+    if (body.menus && Array.isArray(body.menus)) {
+      const orders = body.menus;
+      for (const order of orders) {
+        if (order.uuid) {
+          await dbRun("UPDATE orders SET status = ? WHERE uuid = ?", [
+            "preparing",
+            order.uuid,
+          ]);
+          // Send to socket: menu_id is already the menu name (transformed by dashboard)
+          const menuName = order.menu_id;
+          console.log("[api/orders] Accepting order", order.uuid, "menu:", menuName);
+          if (menuName && typeof menuName === "string" && menuName !== "Unknown Menu Item") {
+            await sendOrder(menuName, 1);
+          }
+        }
+      }
+      return NextResponse.json({
+        success: true,
+        message: `${orders.length} order(s) moved to preparing`,
+      });
+    }
+
+    // Home page: create new order
     const { menuId, customerName } = body;
 
     if (!menuId || !customerName?.trim()) {

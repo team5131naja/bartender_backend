@@ -10,7 +10,10 @@ async function initDb(): Promise<Database> {
   if (db) return db;
 
   try {
-    const SQL = await initSqlJs();
+    // Load WASM binary manually to avoid pnpm path issues
+    const wasmPath = path.join(process.cwd(), "node_modules", "sql.js", "dist", "sql-wasm.wasm");
+    const wasmBinary = fs.readFileSync(wasmPath);
+    const SQL = await initSqlJs({ wasmBinary });
 
     if (fs.existsSync(DB_PATH)) {
       const buffer = fs.readFileSync(DB_PATH);
@@ -57,11 +60,17 @@ async function initDb(): Promise<Database> {
 
     if (menuCount === 0) {
       const defaultMenus = [
-        ["Arnold Palmer Mocktail", "/images/arnold-palmer.jpg"],
-        ["Espresso Martini", "/images/espresso-martini.jpg"],
-        ["Midori Sour", "/images/midori-sour.jpg"],
-        ["Butterfly Pea Lemonade", "/images/butterfly-pea.jpg"],
-        ["Black Russian", "/images/black-russian.jpg"],
+        ["Cosmopolitan", "/images/Cocktail/cosmopolitan.png"],
+        ["Magic Gimlet", "/images/Cocktail/magic-gimlet.jpg"],
+        ["Pineapple Gin Sour", "/images/Cocktail/pineapple-gin-sour.webp"],
+        ["Bay Breeze", "/images/Cocktail/bay-breeze.jpg"],
+        ["Tom Collins", "/images/Cocktail/tom-collins.jpg"],
+        ["Vodka Sour", "/images/Cocktail/vodka-sour.jpg"],
+        ["Magic Lemonade", "/images/Mocktail/magic-lemonade.jpeg"],
+        ["Cranberry Cooler", "/images/Mocktail/cranberry-cooler.jpeg"],
+        ["Pineapple Fizz", "/images/Mocktail/pineapple-fizz.jpeg"],
+        ["Sunset Punch", "/images/Mocktail/sunset-punch.jpeg"],
+        ["Butterfly Pineapple", "/images/Mocktail/butterfly-pineapple.jpg"],
       ];
       for (const [name, imageUrl] of defaultMenus) {
         db.run("INSERT INTO menus (name, image_url) VALUES (?, ?)", [name, imageUrl]);

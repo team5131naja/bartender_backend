@@ -299,8 +299,8 @@ export default function Home() {
 
   // --- No active order → Menu selection ---
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      <main className="mx-auto w-full max-w-3xl px-4 py-8">
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+      <main className="mx-auto w-full max-w-full px-10 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight text-black dark:text-white">
             Choose Your Drink
@@ -310,7 +310,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <div className="grid grid-cols-6 gap-3 sm:gap-4">
           {menu?.map((item) => (
             <button
               onClick={() => {
@@ -324,7 +324,7 @@ export default function Home() {
                 <img
                   src={item.image_url}
                   alt={item.name}
-                  className="h-full w-full object-cover transition group-hover:scale-105"
+                  className="h-full w-full object-cover transition"
                 />
               </div>
               <div className="p-3">

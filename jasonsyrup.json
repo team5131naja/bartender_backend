@@ -1,0 +1,5 @@
+{"command":"dispense","pumps":[{"pump":"syrup","amount_ml":30}]}
+
+{"command":"dispense","pumps":[{"pump":"syrup","amount_ml":30},{"pump":"limejuice","amount_ml":20},{"pump":"vodka","amount_ml":15},{"pump":"gin","amount_ml":15},{"pump":"pineapple","amount_ml":25},{"pump":"cranberry","amount_ml":20},{"pump":"butterflypea","amount_ml":10},{"pump":"sprite","amount_ml":50}]}
+
+{"command":"dispense","pumps":[{"pump":"butterflypea","amount_ml":59},{"pump":"limejuice","amount_ml":22},{"pump":"syrup","amount_ml":22},{"pump":"sprite","amount_ml":59}]}

@@ -1,4 +1,9 @@
 declare module "sql.js" {
+  interface SqlJsConfig {
+    wasmBinary?: ArrayBuffer | Uint8Array;
+    locateFile?: (filename: string) => string;
+  }
+
   interface SqlJsStatic {
     Database: new (data?: ArrayLike<number>) => Database;
   }
@@ -24,6 +29,6 @@ declare module "sql.js" {
     values: any[][];
   }
 
-  export default function initSqlJs(): Promise<SqlJsStatic>;
+  export default function initSqlJs(config?: SqlJsConfig): Promise<SqlJsStatic>;
   export { Database, Statement, QueryExecResult, SqlJsStatic };
 }
