@@ -31,12 +31,20 @@ export async function GET(request: Request) {
 
     // Orders by status (for dashboard)
     if (status) {
-      const orders = await dbAll("SELECT * FROM orders WHERE status = ?", [status]);
+      const orders = await dbAll(
+        `SELECT orders.*, customers.name AS customer_name 
+     FROM orders 
+     JOIN customers ON orders.customer_id = customers.uuid 
+     WHERE orders.status = ?`,
+        [status],
+      );
       return NextResponse.json(orders);
     }
 
     // All orders with menu_id (for dashboard)
-    const orders = await dbAll("SELECT * FROM orders WHERE menu_id IS NOT NULL");
+    const orders = await dbAll(
+      "SELECT * FROM orders WHERE menu_id IS NOT NULL",
+    );
     return NextResponse.json(orders);
   } catch (error) {
     console.error("[api/orders] GET error:", error);
@@ -57,16 +65,32 @@ export async function POST(request: Request) {
       const orders = body.menus;
       for (const order of orders) {
         if (order.uuid) {
+          const menuName = order.menu_id;
+          if (
+            menuName &&
+            typeof menuName === "string" &&
+            menuName !== "Unknown Menu Item"
+          ) {
+            const complete = await sendOrder(menuName, 1);
+            if (!complete) {
+              return NextResponse.json(
+                { success: false, message: "Failed to create order" },
+                { status: 500 },
+              );
+            }
+          }
           await dbRun("UPDATE orders SET status = ? WHERE uuid = ?", [
             "preparing",
             order.uuid,
           ]);
           // Send to socket: menu_id is already the menu name (transformed by dashboard)
-          const menuName = order.menu_id;
-          console.log("[api/orders] Accepting order", order.uuid, "menu:", menuName);
-          if (menuName && typeof menuName === "string" && menuName !== "Unknown Menu Item") {
-            await sendOrder(menuName, 1);
-          }
+
+          console.log(
+            "[api/orders] Accepting order",
+            order.uuid,
+            "menu:",
+            menuName,
+          );
         }
       }
       return NextResponse.json({
@@ -100,13 +124,12 @@ export async function POST(request: Request) {
       "INSERT INTO customers (uuid, name) VALUES (?, ?)",
       [customerUuid, customerName.trim()],
     );
-    const customerId = customerResult.lastInsertRowid;
 
     // Create order
     const orderUuid = randomUUID();
     await dbRun(
       "INSERT INTO orders (uuid, menu_id, customer_id, status) VALUES (?, ?, ?, ?)",
-      [orderUuid, menuId, customerId, "pending"],
+      [orderUuid, menuId, customerUuid, "pending"],
     );
 
     return NextResponse.json({

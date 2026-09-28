@@ -6,7 +6,7 @@ export async function GET() {
     SELECT
       COUNT(CASE WHEN status = 'created' THEN 1 END) AS created,
       COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending,
-      COUNT(CASE WHEN status = 'prepared' THEN 1 END) AS prepared,
+      COUNT(CASE WHEN status = 'preparing' THEN 1 END) AS preparing,
       COUNT(CASE WHEN status = 'cancelled' THEN 1 END) AS cancelled,
       COUNT(CASE WHEN status = 'completed' THEN 1 END) AS completed
     FROM orders

@@ -47,10 +47,10 @@ async function initDb(): Promise<Database> {
         menu_id INTEGER,
         description TEXT,
         status TEXT DEFAULT 'created',
-        customer_id INTEGER,
+        customer_id TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (menu_id) REFERENCES menus(id),
-        FOREIGN KEY (customer_id) REFERENCES customers(id)
+        FOREIGN KEY (customer_id) REFERENCES customers(uuid)
       )
     `);
 
