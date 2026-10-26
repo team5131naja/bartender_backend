@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
+import { Dialog } from "@base-ui/react/dialog";
 
 interface PopupProps {
   open: boolean;
   onClose: () => void;
-  children: React.ReactNode;
+  children: React.ReactElement<React.HTMLAttributes<HTMLDivElement>>;
   zIndex?: number;
+  label?: string;
 }
 
 export default function Popup({
@@ -14,32 +16,43 @@ export default function Popup({
   onClose,
   children,
   zIndex = 50,
+  label = "Order dialog",
 }: PopupProps) {
-  const backdropRef = useRef<HTMLDivElement>(null);
+  const [viewport, setViewport] = useState<{ height: number; top: number } | null>(null);
 
   useEffect(() => {
-    if (!open) return;
+    const visualViewport = window.visualViewport;
+    if (!open || !visualViewport) return;
 
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
+    // Keep the dialog inside the visible area when a mobile keyboard opens.
+    const updateViewport = () => {
+      setViewport({ height: visualViewport.height, top: visualViewport.offsetTop });
+    };
 
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
-
-  if (!open) return null;
+    updateViewport();
+    visualViewport.addEventListener("resize", updateViewport);
+    visualViewport.addEventListener("scroll", updateViewport);
+    return () => {
+      visualViewport.removeEventListener("resize", updateViewport);
+      visualViewport.removeEventListener("scroll", updateViewport);
+    };
+  }, [open]);
 
   return (
-    <div
-      ref={backdropRef}
-      className="fixed inset-0 flex items-center justify-center bg-black/50 p-4"
-      style={{ zIndex }}
-      onClick={(e) => {
-        if (e.target === backdropRef.current) onClose();
-      }}
-    >
-      {children}
-    </div>
+    <Dialog.Root open={open} onOpenChange={(nextOpen) => { if (!nextOpen) onClose(); }}>
+      <Dialog.Portal>
+        <Dialog.Backdrop className="fixed inset-0 bg-black/50" style={{ zIndex }} />
+        <Dialog.Viewport
+          className="fixed inset-0 flex max-h-dvh items-center justify-center overflow-y-auto overscroll-contain p-4"
+          style={{ zIndex, ...(viewport && { height: viewport.height, top: viewport.top }) }}
+        >
+          <Dialog.Popup
+            render={children}
+            aria-label={label}
+            className="min-w-0 max-h-full overflow-y-auto overscroll-contain break-words outline-none"
+          />
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

@@ -13,12 +13,15 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const isAuth = sessionStorage.getItem("authenticated")
-    if (isAuth !== "true") {
-      router.replace("/login")
-      return
-    }
-    setIsLoading(false)
+    let active = true
+    fetch("/api/auth", { cache: "no-store" })
+      .then((response) => {
+        if (!active) return
+        if (!response.ok) { router.replace("/login"); return }
+        setIsLoading(false)
+      })
+      .catch(() => { if (active) router.replace("/login") })
+    return () => { active = false }
   }, [router])
 
   useEffect(() => {

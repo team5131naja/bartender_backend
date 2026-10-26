@@ -23,10 +23,13 @@ export async function POST(req: Request) {
   }
 
   if (order.status === "pending") {
-    await dbRun(
-      "UPDATE orders SET status = ?, description = ? WHERE uuid = ?",
-      ["cancelled", "cancelled by user", orderUuid],
+    const result = await dbRun(
+      "UPDATE orders SET status = ?, description = ? WHERE uuid = ? AND status = ?",
+      ["cancelled", "cancelled by user", orderUuid, "pending"],
     );
+    if (result.changes !== 1) {
+      return NextResponse.json({ success: false, message: "Order cannot be cancelled" }, { status: 409 });
+    }
 
     return NextResponse.json({
       success: true,

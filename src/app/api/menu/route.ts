@@ -1,9 +1,20 @@
 import { dbAll, dbGet, dbRun } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const menus = await dbAll("SELECT * FROM menus WHERE available != 0");
+    const url = new URL(req.url);
+    const category = url.searchParams.get("category");
+
+    let sql = "SELECT * FROM menus WHERE available != 0";
+    const params: any[] = [];
+
+    if (category) {
+      sql += " AND category = ?";
+      params.push(category);
+    }
+
+    const menus = await dbAll(sql, params);
 
     return NextResponse.json({
       success: true,

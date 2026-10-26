@@ -6,21 +6,25 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const menuMap: Record<number, string> = {
-    1: "Cosmopolitan",
-    2: "Magic Gimlet",
-    3: "Pineapple Gin Sour",
-    4: "Bay Breeze",
-    5: "Tom Collins",
-    6: "Vodka Sour",
-    7: "Magic Lemonade",
-    8: "Cranberry Cooler",
-    9: "Pineapple Fizz",
-    10: "Sunset Punch",
-    11: "Butterfly Pineapple",
-  };
+  1: "Cosmopolitan",
+  2: "Magic Gimlet",
+  3: "Pineapple Gin Sour",
+  4: "Bay Breeze",
+  5: "Tom Collins",
+  6: "Vodka Sour",
+  7: "Magic Lemonade",
+  8: "Cranberry Cooler",
+  9: "Pineapple Fizz",
+  10: "Sunset Punch",
+  11: "Butterfly Pineapple",
+  12: "ชาชัก",
+  13: "ชาชักโกโก้",
+  14: "ชาเขียวชัก",
+  15: "ชาชักน้ำผึ้งมะนาว",
+  16: "ชาชักโฮจิฉะ",
+};
 
 export function getMenuNameById(id: number) {
-
   return menuMap[id] ?? "Unknown Menu Item";
 }
 

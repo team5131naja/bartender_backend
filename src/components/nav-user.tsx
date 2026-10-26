@@ -21,6 +21,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { EllipsisVerticalIcon, CircleUserRoundIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 export function NavUser({
   user,
@@ -32,6 +34,19 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+  async function logout() {
+    try {
+      const response = await fetch("/api/auth", { method: "DELETE" })
+      if (!response.ok) throw new Error("Logout failed")
+      sessionStorage.removeItem("authenticated")
+      sessionStorage.removeItem("username")
+      router.replace("/login")
+      router.refresh()
+    } catch {
+      toast.error("Unable to log out. Please try again.")
+    }
+  }
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -94,7 +109,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <LogOutIcon
               />
               Log out

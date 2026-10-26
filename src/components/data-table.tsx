@@ -105,6 +105,7 @@ import {
   TrendingUpIcon,
   CheckIcon,
   RobotArmIcon,
+  Trash2Icon,
 } from "lucide-react";
 import { getMenuNameById } from "@/lib/utils";
 
@@ -351,29 +352,103 @@ const columns = columnHelper.columns([
   // }),
   columnHelper.display({
     id: "actions",
-    cell: () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              variant="ghost"
-              className="flex size-8 text-muted-foreground data-[state=open]:bg-muted"
-              size="icon"
-            />
-          }
-        >
-          <EllipsisVerticalIcon />
-          <span className="sr-only">Open menu</span>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-32">
-          <DropdownMenuItem>Edit</DropdownMenuItem>
-          <DropdownMenuItem>Make a copy</DropdownMenuItem>
-          <DropdownMenuItem>Favorite</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+    cell: ({ row, table }) => {
+      const order = row.original;
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                className="flex size-8 text-muted-foreground data-[state=open]:bg-muted"
+                size="icon"
+              />
+            }
+          >
+            <EllipsisVerticalIcon />
+            <span className="sr-only">Open menu</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-40">
+            {order.status === "pending" && (
+              <DropdownMenuItem
+                onClick={async () => {
+                  toast.loading("Sending order to DOBOT...", { id: "dobot-toast" });
+                  try {
+                    const res = await fetch("/api/orders", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ menus: [order] }),
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                      toast.success("Order sent to DOBOT", { id: "dobot-toast" });
+                      (table.options.meta as any)?.refreshData?.();
+                    } else {
+                      toast.error(data.message || "Failed to send to DOBOT", { id: "dobot-toast" });
+                    }
+                  } catch {
+                    toast.error("Network error while connecting to backend", { id: "dobot-toast" });
+                  }
+                }}
+              >
+                Send to DOBOT
+              </DropdownMenuItem>
+            )}
+
+            {order.status === "pending" && (
+              <DropdownMenuItem
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/orders/cancel", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ orderUuid: order.uuid }),
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.success) {
+                      toast.success("Order cancelled");
+                      (table.options.meta as any)?.refreshData?.();
+                    } else {
+                      toast.error(data.message || "Failed to cancel order");
+                    }
+                  } catch {
+                    toast.error("Network error while cancelling order");
+                  }
+                }}
+              >
+                Cancel Order
+              </DropdownMenuItem>
+            )}
+
+            {order.status === "pending" && <DropdownMenuSeparator />}
+
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={async (e) => {
+                e.stopPropagation();
+                if (!confirm(`Are you sure you want to delete order for "${order.customer_name || 'Customer'}"?`)) return;
+                try {
+                  const res = await fetch(`/api/orders?uuid=${encodeURIComponent(order.uuid)}`, {
+                    method: "DELETE",
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.success) {
+                    toast.success("Order deleted successfully");
+                    (table.options.meta as any)?.refreshData?.();
+                  } else {
+                    toast.error(data.message || "Failed to delete order");
+                  }
+                } catch {
+                  toast.error("Network error while deleting order");
+                }
+              }}
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
   }),
 ]);
 function DraggableRow({
@@ -466,6 +541,8 @@ export function DataTable({
   // Add these states
   const [view, setView] = React.useState("incoming");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isSending, setIsSending] = React.useState(false);
+  const sendingRef = React.useRef(false);
 
   const [count, setCount] = React.useState<count_data_schema>({
     created: 0,
@@ -561,25 +638,98 @@ export function DataTable({
   }, [view]);
 
   React.useEffect(() => {
-    console.log("Data view updated:", data);
-  }, [view]);
+    (table.options.meta as any) = {
+      refreshData: () => {
+        fetchDataForView();
+        fetchCount();
+      },
+    };
+  }, [table, fetchDataForView, fetchCount]);
 
   async function acceptOrder() {
+    if (sendingRef.current) return;
     const selectedRows = table
       .getFilteredSelectedRowModel()
       .rows.map((row) => row.original);
-    console.log(selectedRows);
+    if (selectedRows.length === 0) return;
 
-    const res = await fetch(`/api/orders`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ menus: selectedRows }),
-    });
+    sendingRef.current = true;
+    setIsSending(true);
+    toast.loading("Sending order(s) to DOBOT...", { id: "dobot-toast" });
 
-    console.log(await res.json());
+    try {
+      const res = await fetch(`/api/orders`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ menus: selectedRows }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(data.message || "Order(s) sent to DOBOT successfully", {
+          id: "dobot-toast",
+        });
+        setRowSelection({});
+        fetchDataForView();
+        fetchCount();
+      } else {
+        toast.error(data.message || "Failed to send order to DOBOT", {
+          id: "dobot-toast",
+        });
+      }
+    } catch {
+      toast.error("Network error while connecting to server", {
+        id: "dobot-toast",
+      });
+    } finally {
+      sendingRef.current = false;
+      setIsSending(false);
+    }
+  }
+
+  async function deleteSelectedOrders() {
+    const selectedRows = table
+      .getFilteredSelectedRowModel()
+      .rows.map((row) => row.original);
+    if (selectedRows.length === 0) return;
+
+    if (
+      !confirm(
+        `Are you sure you want to delete ${selectedRows.length} selected order(s)?`,
+      )
+    )
+      return;
+
+    toast.loading("Deleting orders...", { id: "delete-toast" });
+    try {
+      const res = await fetch("/api/orders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uuids: selectedRows.map((r) => r.uuid),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(data.message || "Orders deleted successfully", {
+          id: "delete-toast",
+        });
+        setRowSelection({});
+        fetchDataForView();
+        fetchCount();
+      } else {
+        toast.error(data.message || "Failed to delete orders", {
+          id: "delete-toast",
+        });
+      }
+    } catch {
+      toast.error("Network error while deleting orders", {
+        id: "delete-toast",
+      });
+    }
   }
 
   return (
@@ -610,7 +760,7 @@ export function DataTable({
               <SelectItem value="incoming">Incoming</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
               <SelectItem value="preparing">Preparing</SelectItem>
-              <SelectItem value="focus-documents">Completed</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -633,7 +783,7 @@ export function DataTable({
               <Badge variant="secondary">{count.preparing}</Badge>
             ) : null}
           </TabsTrigger>
-          <TabsTrigger value="focus-documents">
+          <TabsTrigger value="completed">
             Completed{" "}
             {count !== null && count.completed !== 0 ? (
               <Badge variant="secondary">{count.completed}</Badge>
@@ -641,14 +791,25 @@ export function DataTable({
           </TabsTrigger>
         </TabsList>
         <div className="flex items-center gap-2">
+          {table.getFilteredSelectedRowModel().rows.length > 0 && (
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={deleteSelectedOrders}
+            >
+              <Trash2Icon className="size-4" />
+              <span>
+                Delete ({table.getFilteredSelectedRowModel().rows.length})
+              </span>
+            </Button>
+          )}
+
           {view == "incoming" ? (
             <Button
               size="sm"
               onClick={acceptOrder}
               disabled={
-                table.getFilteredSelectedRowModel().rows.length == 0
-                  ? true
-                  : false
+                isSending || table.getFilteredSelectedRowModel().rows.length === 0
               }
             >
               {/* <CheckIcon /> */}
@@ -925,7 +1086,7 @@ export function DataTable({
           </div>
         </div>
       </TabsContent>
-      <TabsContent value="preparing" className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
+      <TabsContent value={view === "completed" ? "completed" : "preparing"} className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
         <div className="overflow-hidden rounded-lg border">
           <DndContext
             collisionDetection={closestCenter}
@@ -1056,12 +1217,7 @@ export function DataTable({
           </div>
         </div>
       </TabsContent>
-      <TabsContent
-        value="focus-documents"
-        className="flex flex-col px-4 lg:px-6"
-      >
-        <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
-      </TabsContent>
+
     </Tabs>
   );
 }

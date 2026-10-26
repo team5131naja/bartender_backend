@@ -51,7 +51,7 @@ export default function StatusPopup({
   const config = STATUS_CONFIG[status];
 
   return (
-    <Popup open={open} onClose={onClose} zIndex={60}>
+    <Popup open={open} onClose={onClose} zIndex={60} label={config.title}>
       <div
         className="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-2xl dark:bg-zinc-900"
         onClick={(e) => e.stopPropagation()}
