@@ -330,9 +330,9 @@ export default function Home() {
         </main>
 
         {/* Footer */}
-        <footer className="mx-auto w-full max-w-7xl px-6 py-6 sm:px-10 text-center text-xs text-zinc-500 dark:text-zinc-400 border-t border-zinc-200/80 dark:border-zinc-800/80">
+        {/* <footer className="mx-auto w-full max-w-7xl px-6 py-6 sm:px-10 text-center text-xs text-zinc-500 dark:text-zinc-400 border-t border-zinc-200/80 dark:border-zinc-800/80">
           Dobot Robotic Bar System • Powered by Next.js
-        </footer>
+        </footer> */}
 
 
       </div>
