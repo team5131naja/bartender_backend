@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Popup from "@/components/Popup";
 import StatusPopup from "@/components/StatusPopup";
 import LoadError from "@/components/LoadError";
+import { NamePopupWithKeyboard } from "@/components/floating";
+import { SweetSelector } from "@/components/SweetSelector";
 
 interface Order {
   id: number;
@@ -33,6 +35,8 @@ export default function ChaChakPage() {
 
   const [loadError, setLoadError] = useState(false);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const [statusPopup, setStatusPopup] = useState<{
     status: "created" | "pending" | "preparing" | "completed" | "cancelled";
     message: string;
@@ -44,22 +48,29 @@ export default function ChaChakPage() {
       try {
         const orderUuid = localStorage.getItem("orderUuid");
         if (orderUuid) {
-          const response = await fetch(`/api/orders?uuid=${encodeURIComponent(orderUuid)}`, { signal: AbortSignal.timeout(15000) });
+          const response = await fetch(
+            `/api/orders?uuid=${encodeURIComponent(orderUuid)}`,
+            { signal: AbortSignal.timeout(15000) },
+          );
           if (response.status === 404) {
             localStorage.removeItem("orderUuid");
           } else {
             if (!response.ok) throw new Error("Unable to load saved order");
             const data = await response.json();
-            if (!data.success || !data.data) throw new Error("Invalid order response");
+            if (!data.success || !data.data)
+              throw new Error("Invalid order response");
             if (isMounted) setOrder(data.data);
             return;
           }
         }
 
-        const menuRes = await fetch("/api/menu?category=cha_chak", { signal: AbortSignal.timeout(15000) });
+        const menuRes = await fetch("/api/menu?category=cha_chak", {
+          signal: AbortSignal.timeout(15000),
+        });
         if (!menuRes.ok) throw new Error("Unable to load menus");
         const menuData = await menuRes.json();
-        if (!menuData.success || !Array.isArray(menuData.data)) throw new Error("Invalid menu response");
+        if (!menuData.success || !Array.isArray(menuData.data))
+          throw new Error("Invalid menu response");
         if (isMounted) setMenu(menuData.data);
       } catch (error) {
         console.error(error);
@@ -69,12 +80,15 @@ export default function ChaChakPage() {
       }
     };
     init();
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Poll order status every 3 seconds when order is pending/preparing
   useEffect(() => {
-    if (!order || order.status === "completed" || order.status === "cancelled") return;
+    if (!order || order.status === "completed" || order.status === "cancelled")
+      return;
 
     const interval = setInterval(async () => {
       try {
@@ -124,11 +138,18 @@ export default function ChaChakPage() {
       // The POST already created the order. Track it immediately even if GET fails.
       setSelectedMenu(null);
       setOrder({
-        id: 0, uuid: data.data.orderUuid, menu_id: selectedMenu.id,
-        status: "pending", description: null, customer_id: 0, customer_name: inputName.trim(),
+        id: 0,
+        uuid: data.data.orderUuid,
+        menu_id: selectedMenu.id,
+        status: "pending",
+        description: null,
+        customer_id: 0,
+        customer_name: inputName.trim(),
       });
-      setStatusPopup({ status: "pending", message: `Your order for ${selectedMenu.name} has been placed!` });
-
+      setStatusPopup({
+        status: "pending",
+        message: `Your order for ${selectedMenu.name} has been placed!`,
+      });
     } catch {
       setStatusPopup({
         status: "cancelled",
@@ -144,10 +165,13 @@ export default function ChaChakPage() {
     setOrder(null);
     setLoading(true);
     try {
-      const response = await fetch("/api/menu?category=cha_chak", { signal: AbortSignal.timeout(15000) });
+      const response = await fetch("/api/menu?category=cha_chak", {
+        signal: AbortSignal.timeout(15000),
+      });
       if (!response.ok) throw new Error("Unable to load menus");
       const data = await response.json();
-      if (!data.success || !Array.isArray(data.data)) throw new Error("Invalid menu response");
+      if (!data.success || !Array.isArray(data.data))
+        throw new Error("Invalid menu response");
       setMenu(data.data);
     } catch {
       setLoadError(true);
@@ -164,7 +188,9 @@ export default function ChaChakPage() {
       return (
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-zinc-50 dark:bg-black">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-zinc-200 border-t-black dark:border-zinc-700 dark:border-t-white" />
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading ชาชัก menu...</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Loading ชาชัก menu...
+          </p>
         </div>
       );
     }
@@ -279,9 +305,9 @@ export default function ChaChakPage() {
     // --- Status: cancelled ---
     if (order?.status === "cancelled") {
       return (
-        <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6 dark:bg-black">
+        <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6">
           <div className="w-full max-w-sm text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full dark:bg-red-900/30">
               <span className="text-4xl">✕</span>
             </div>
             <h1 className="mt-6 text-3xl font-bold text-black dark:text-white">
@@ -305,51 +331,54 @@ export default function ChaChakPage() {
 
     // --- Menu Selection ---
     return (
-      <div className="min-h-screen bg-zinc-50 dark:bg-black">
-        <main className="mx-auto w-full max-w-7xl px-6 sm:px-10 py-8">
-          <div className="mb-8">
-            <a
-              href="/"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-500 hover:text-black dark:text-zinc-400 dark:hover:text-white transition-colors mb-4 group"
-            >
-              <span className="transition-transform group-hover:-translate-x-1">←</span>
-              <span>Back to Categories</span>
-            </a>
-            <h1 className="text-3xl font-extrabold tracking-tight text-black dark:text-white">
-              Southern ชาชัก (Southern Thai Pulled Tea)
-            </h1>
-            <p className="mt-2 text-zinc-500 dark:text-zinc-400">
-              ศิลปะการชักชาสูตรใต้แท้ ฟองโฟมนุ่มละเอียด เข้มข้น หอมใบชาคั่ว
-            </p>
+      <div className="flex flex-col min-h-screen bg-zinc-100">
+        <main className="mx-auto flex w-full flex-1 flex-col pt-20">
+          {/* <div className="bg-[#d2761f] h-30"></div> */}
+          <div className="flex flex-col justify-center px-10">
+            {/* Header */}
+
+            {/* Menu Grid */}
+            <div className="relative flex justify-center">
+              {/* วงกลมสีดำขนาดเล็กอยู่ด้านหลัง */}
+              <div className="pointer-events-none absolute top-1/2 left-1/2 z-0 h-90 w-90 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#db8c4d]" />
+
+              {/* รูปภาพอยู่ด้านหน้า */}
+              <div className="relative z-10 aspect-square w-full max-w-[360pt] overflow-hidden">
+                <img
+                  src={"/images/ChaChak/chachak2.png"}
+                  className="h-full w-full -translate-y-10 object-cover drop-shadow-xl transition"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-center -translate-y-1/2">
+              <h1 className="font-ekkamaiVibe font-black text-taupe-600 tracking-tighter text-6xl">
+                TEH TARIK ชาชัก
+              </h1>
+            </div>
+
+            <form action="">
+              <div className="bg-white font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
+                <h2 className="text-3xl">เลือกความหวานที่ลงตัว</h2>
+                <SweetSelector />
+              </div>
+
+              <div className="bg-white font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
+                <h2 className="text-3xl">เลือกความหวานที่ลงตัว</h2>
+                <SweetSelector />
+              </div>
+              <div className="bg-white font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
+                <h2 className="text-3xl">เลือกความหวานที่ลงตัว</h2>
+                <SweetSelector />
+              </div>
+            </form>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 landscape:md:grid-cols-5 portrait:lg:grid-cols-4 portrait:max-[360px]:grid-cols-1 gap-3 sm:gap-4">
-            {menu?.map((item) => (
-              <button
-                onClick={() => {
-                  setSelectedMenu(item);
-                  setInputName("");
-                }}
-                key={item.id}
-                className="group overflow-hidden rounded-2xl bg-white text-left shadow-sm transition hover:shadow-md active:scale-[0.97] dark:bg-zinc-900 dark:hover:shadow-none portrait:flex portrait:flex-col"
-              >
-                <div className="aspect-square w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="h-full w-full object-cover transition"
-                  />
-                </div>
-                <div className="p-3">
-                  <h2 className="font-semibold text-black dark:text-white truncate portrait:whitespace-normal portrait:break-words">
-                    {item.name}
-                  </h2>
-                </div>
-              </button>
-            ))}
+          {/* Always at the bottom without fixed positioning */}
+          <div className="mt-auto p-4 flex items-center justify-end">
+            <NamePopupWithKeyboard />
           </div>
         </main>
-
         {/* Name input popup */}
         <Popup open={!!selectedMenu} onClose={() => setSelectedMenu(null)}>
           <div
@@ -404,8 +433,6 @@ export default function ChaChakPage() {
             </div>
           </div>
         </Popup>
-
-
       </div>
     );
   }

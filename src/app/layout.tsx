@@ -1,12 +1,36 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, DM_Sans, Outfit } from "next/font/google";
+import { Geist, Geist_Mono, DM_Sans, Outfit, Kanit } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import localFont from "next/font/local";
 
-const outfitHeading = Outfit({subsets:['latin'],variable:'--font-heading'});
-const dmSans = DM_Sans({subsets:['latin'],variable:'--font-sans'});
+const outfitHeading = Outfit({
+  subsets: ["latin"],
+  variable: "--font-heading",
+});
+const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-sans" });
+
+const EkkamaiVibeFont = localFont({
+  src: [
+    {
+      path: "../fonts/EkkamaiVibe/EkkamaiVibe-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../fonts/EkkamaiVibe/EkkamaiVibe-Heavy.ttf",
+      weight: "900",
+      style: "normal",
+    },
+  ],
+});
+
+const TorsilpLamunFont = localFont({
+  src: "../fonts/TorsilpLamun.ttf",
+  weight: "400"
+})
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,6 +40,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const KanitFont = Kanit({
+  variable: "--font-kanit",
+  subsets: ["thai", "latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -35,17 +65,25 @@ export default function RootLayout({
       lang="en"
       suppressHydrationWarning
       className={cn(
-              "h-full",
-              "antialiased",
-              geistSans.variable,
-              geistMono.variable
-            , "font-sans", dmSans.variable, outfitHeading.variable)}
+        "h-full",
+        "antialiased",
+        geistSans.variable,
+        geistMono.variable,
+        KanitFont.variable,
+        EkkamaiVibeFont.className,
+        "font-sans",
+        dmSans.variable,
+        outfitHeading.variable,
+      )}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange enableSystem>
-          <TooltipProvider>
-            {children}
-          </TooltipProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          disableTransitionOnChange
+          enableSystem
+        >
+          <TooltipProvider>{children}</TooltipProvider>
           <Toaster />
         </ThemeProvider>
       </body>

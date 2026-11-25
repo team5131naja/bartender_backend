@@ -29,6 +29,9 @@ importers:
       '@u4/opencv4nodejs':
         specifier: ^7.1.2
         version: 7.1.2
+      '@usefy/virtual-keyboard':
+        specifier: ^1.0.2
+        version: 1.0.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       canvas:
         specifier: ^3.2.3
         version: 3.2.3
@@ -53,6 +56,9 @@ importers:
       react-dom:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
+      react-simple-keyboard:
+        specifier: ^3.8.298
+        version: 3.8.298(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       recharts:
         specifier: 3.8.0
         version: 3.8.0(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react-is@16.13.1)(react@19.2.8)(redux@5.0.1)
@@ -1088,6 +1094,32 @@ packages:
     resolution: {integrity: sha512-nAB74NfSNKknqQ1RrYj6uz8FcXEomu/MATJZxh/x+BArzN2U3JbOYC0APYzUIGhVY3m5hRxA8VPNdPBoG8txlA==}
     cpu: [x64]
     os: [win32]
+
+  '@usefy/use-controllable-state@1.1.0':
+    resolution: {integrity: sha512-Z9pEQf2ND7B9oPRxOdVd3H3llCIk8gDz9F6jBxCFb4mjDldKGhUs9Cj8CUHRs8j7Oh3f714xb4yvv6nrwGW/1w==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+
+  '@usefy/use-latest@1.1.0':
+    resolution: {integrity: sha512-t5Gsn6OajBcnyZU9OaOrZQnLVVF4gB4gabW0sHRBvc9BMqC+H0PX+64siG/R1ni9BGikkYVwxfe2ANgGZHS/Mw==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+
+  '@usefy/use-long-press@1.1.0':
+    resolution: {integrity: sha512-IUVSMrM4842NDLirK4X3m8DWq3vpQiq1PWij8rEUJmBEe0ro+okcQjdkHK2ZyyI8DlhE9TGEvqozvQGIuVtYVA==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+
+  '@usefy/use-on-click-outside@1.1.0':
+    resolution: {integrity: sha512-iVQ3OvqpNig3frjciALlcXSNljNlNtKW6L4GdWOFzii8VOwkJDX9fWzVHilS9kcCXbe5qnzORjp691XDgClNWQ==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+
+  '@usefy/virtual-keyboard@1.0.2':
+    resolution: {integrity: sha512-++D9rs2ik1sUkydeM7WLGfXYz2TPcP+T3dpnc81esuX0XhI4uPXPsXgxmp5tS2/O6q10u6/mPGoImuxiPAd0Ug==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
 
   abbrev@2.0.0:
     resolution: {integrity: sha512-6/mh1E2u2YgEsCHdY0Yx5oW+61gZU+1vXaoiHHrpKeuRNNgFvS+/jrwHiQhB5apAf5oB7UB7E19ol2R2LKH8hQ==}
@@ -3013,6 +3045,12 @@ packages:
       redux:
         optional: true
 
+  react-simple-keyboard@3.8.298:
+    resolution: {integrity: sha512-ry3c+IYmj1pEWSIrqixYCXPcU+YuU/C13K5OCWPZhAaY/oL8mqN58U679K8dt5Gry6EbQs3BCmp+djQFxFZsCQ==}
+    peerDependencies:
+      react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
   react@19.2.8:
     resolution: {integrity: sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==}
     engines: {node: '>=0.10.0'}
@@ -4589,6 +4627,32 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
+
+  '@usefy/use-controllable-state@1.1.0(react@19.2.8)':
+    dependencies:
+      react: 19.2.8
+
+  '@usefy/use-latest@1.1.0(react@19.2.8)':
+    dependencies:
+      react: 19.2.8
+
+  '@usefy/use-long-press@1.1.0(react@19.2.8)':
+    dependencies:
+      '@usefy/use-latest': 1.1.0(react@19.2.8)
+      react: 19.2.8
+
+  '@usefy/use-on-click-outside@1.1.0(react@19.2.8)':
+    dependencies:
+      react: 19.2.8
+
+  '@usefy/virtual-keyboard@1.0.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@usefy/use-controllable-state': 1.1.0(react@19.2.8)
+      '@usefy/use-long-press': 1.1.0(react@19.2.8)
+      '@usefy/use-on-click-outside': 1.1.0(react@19.2.8)
+      clsx: 2.1.1
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
 
   abbrev@2.0.0: {}
 
@@ -6648,6 +6712,11 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.18
       redux: 5.0.1
+
+  react-simple-keyboard@3.8.298(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+    dependencies:
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
 
   react@19.2.8: {}
 
