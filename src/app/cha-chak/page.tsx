@@ -5,7 +5,10 @@ import Popup from "@/components/Popup";
 import StatusPopup from "@/components/StatusPopup";
 import LoadError from "@/components/LoadError";
 import { NamePopupWithKeyboard } from "@/components/floating";
-import { SweetSelector } from "@/components/SweetSelector";
+import { SweetSelector, type ScaleOption as SweetScaleOption } from "@/components/selector/SweetSelector";
+import { ToppingSelector, type ScaleOption as ToppingScaleOption } from "@/components/selector/ToppingSelector";
+import { DonateSelector, type ScaleOption as DonateScaleOption } from "@/components/selector/DonateSelector";
+import { useRouter } from "next/navigation";
 
 interface Order {
   id: number;
@@ -25,6 +28,9 @@ interface MenuItem {
 }
 
 export default function ChaChakPage() {
+
+  const router = useRouter()
+
   const [order, setOrder] = useState<Order | null>(null);
   const [menu, setMenu] = useState<MenuItem[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,9 +39,14 @@ export default function ChaChakPage() {
   const [inputName, setInputName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [price, setPrice] = useState<Number>(49)
+  const [sweet, setSweet] = useState<SweetScaleOption>("100%")
+  const [topping, setTopping] = useState<ToppingScaleOption>("ไม่ใส่")
+  const [donate, setDonate] = useState<DonateScaleOption>("0฿")
+
   const [loadError, setLoadError] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isNamePopupOpen, setIsNamePopupOpen] = useState(false);
 
   const [statusPopup, setStatusPopup] = useState<{
     status: "created" | "pending" | "preparing" | "completed" | "cancelled";
@@ -106,6 +117,19 @@ export default function ChaChakPage() {
 
     return () => clearInterval(interval);
   }, [order?.status]);
+
+  useEffect(() => {
+    console.log("change")
+
+    let price = 49;
+
+    if (topping == "บุก +5฿") {
+      price += 5;
+    }
+
+    price += Number(donate.replace(/[^\d]/g, "")) || 0;
+    setPrice(price)
+  }, [sweet, topping, donate])
 
   async function handleOrder() {
     if (!selectedMenu || !inputName.trim() || isSubmitting) return;
@@ -358,26 +382,46 @@ export default function ChaChakPage() {
             </div>
 
             <form action="">
-              <div className="bg-white font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
+              <div className="flex justify-between bg-white font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
                 <h2 className="text-3xl">เลือกความหวานที่ลงตัว</h2>
-                <SweetSelector />
+                <div className="flex items-start">
+                  <SweetSelector value={sweet} onChange={(v) => {
+                    setSweet(v)
+                  }} />
+                </div>
               </div>
 
               <div className="bg-white font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
-                <h2 className="text-3xl">เลือกความหวานที่ลงตัว</h2>
-                <SweetSelector />
+                <h2 className="text-3xl">เลือกท็อปปิ้ง</h2>
+                <ToppingSelector value={topping} onChange={(v) => {
+                    setTopping(v)
+                  }} />
               </div>
               <div className="bg-white font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
-                <h2 className="text-3xl">เลือกความหวานที่ลงตัว</h2>
-                <SweetSelector />
+                <h2 className="text-3xl">โดเนทให้ผู้พัฒนา</h2>
+                <DonateSelector value={donate} onChange={(v) => {
+                    setDonate(v)
+                  }} />
               </div>
             </form>
           </div>
 
-          {/* Always at the bottom without fixed positioning */}
           <div className="mt-auto p-4 flex items-center justify-end">
-            <NamePopupWithKeyboard />
+            <button
+              type="button"
+              onClick={() => {
+                router.push("/pay");
+              }}
+              className="font-kanit cursor-pointer text-3xl rounded-full bg-taupe-900 px-10 py-4 text-white shadow hover:bg-taupe-600"
+            >
+              ซื้อเลย <span>{price.valueOf()}฿</span>
+            </button>
           </div>
+
+          <NamePopupWithKeyboard
+            isOpen={isNamePopupOpen}
+            onClose={() => setIsNamePopupOpen(false)}
+          />
         </main>
         {/* Name input popup */}
         <Popup open={!!selectedMenu} onClose={() => setSelectedMenu(null)}>

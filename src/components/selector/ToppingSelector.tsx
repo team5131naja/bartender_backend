@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 
-const SCALE_OPTIONS = ["50%", "100%", "150%"] as const;
-type ScaleOption = (typeof SCALE_OPTIONS)[number];
+const SCALE_OPTIONS = ["ไม่ใส่", "บุก +5฿"] as const;
+export type ScaleOption = (typeof SCALE_OPTIONS)[number];
 
-export function SweetSelector({
+export function ToppingSelector({
   value,
   onChange,
 }: {
   value?: ScaleOption;
   onChange?: (val: ScaleOption) => void;
 }) {
-  const [selected, setSelected] = useState<ScaleOption>(value ?? "100%");
+  const [selected, setSelected] = useState<ScaleOption>(value ?? "ไม่ใส่");
   const current = value ?? selected;
 
   const handleSelect = (opt: ScaleOption) => {
@@ -23,8 +23,8 @@ export function SweetSelector({
   return (
     <div
       role="radiogroup"
-      aria-label="ระดับความเข้มข้นหรือขนาด"
-      className="flex items-center justify-end gap-4 text-xl"
+      aria-label="เลือกท็อปปิ้ง"
+      className="flex items-center justify-end gap-4 text-2xl"
     >
       {SCALE_OPTIONS.map((opt) => {
         const isActive = current === opt;
@@ -35,10 +35,10 @@ export function SweetSelector({
             role="radio"
             aria-checked={isActive}
             onClick={() => handleSelect(opt)}
-            className={`cursor-pointer rounded-full border-2 border-taupe-600 px-4 py-2 font-medium transition active:scale-95 ${
+            className={`cursor-pointer rounded-full border-2 px-6 py-3 font-medium transition active:scale-95 ${
               isActive
-                ? "bg-taupe-600 text-white"
-                : "bg-transparent text-taupe-600 hover:bg-taupe-600/10"
+                ? "bg-[#b2bb1e] text-white border-[#b2bb1e]"
+                : "bg-transparent text-taupe-600 hover:bg-taupe-600/10 border-taupe-600"
             }`}
           >
             {opt}

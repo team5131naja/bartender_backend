@@ -56,9 +56,6 @@ importers:
       react-dom:
         specifier: 19.2.8
         version: 19.2.8(react@19.2.8)
-      react-simple-keyboard:
-        specifier: ^3.8.298
-        version: 3.8.298(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       recharts:
         specifier: 3.8.0
         version: 3.8.0(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react-is@16.13.1)(react@19.2.8)(redux@5.0.1)
@@ -3044,12 +3041,6 @@ packages:
         optional: true
       redux:
         optional: true
-
-  react-simple-keyboard@3.8.298:
-    resolution: {integrity: sha512-ry3c+IYmj1pEWSIrqixYCXPcU+YuU/C13K5OCWPZhAaY/oL8mqN58U679K8dt5Gry6EbQs3BCmp+djQFxFZsCQ==}
-    peerDependencies:
-      react: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   react@19.2.8:
     resolution: {integrity: sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==}
@@ -6712,11 +6703,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.18
       redux: 5.0.1
-
-  react-simple-keyboard@3.8.298(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
-    dependencies:
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
 
   react@19.2.8: {}
 
