@@ -24,7 +24,7 @@ export function DonateSelector({
     <div
       role="radiogroup"
       aria-label="โดเนท"
-      className="flex items-center justify-end gap-6 text-2xl"
+      className="flex w-96 items-center justify-end gap-3 text-2xl"
     >
       {SCALE_OPTIONS.map((opt) => {
         const isActive = current === opt;
@@ -35,7 +35,7 @@ export function DonateSelector({
             role="radio"
             aria-checked={isActive}
             onClick={() => handleSelect(opt)}
-             className={`cursor-pointer rounded-full border-2 px-6 py-3 font-medium transition active:scale-95 ${
+             className={`cursor-pointer w-full rounded-full border-2 px-6 py-3 font-medium transition active:scale-95 ${
               isActive
                 ? "bg-[#b2bb1e] text-white border-[#b2bb1e]"
                 : "bg-transparent text-taupe-600 hover:bg-taupe-600/10 border-taupe-600"

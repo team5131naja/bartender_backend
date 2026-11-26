@@ -5,9 +5,18 @@ import Popup from "@/components/Popup";
 import StatusPopup from "@/components/StatusPopup";
 import LoadError from "@/components/LoadError";
 import { NamePopupWithKeyboard } from "@/components/floating";
-import { SweetSelector, type ScaleOption as SweetScaleOption } from "@/components/selector/SweetSelector";
-import { ToppingSelector, type ScaleOption as ToppingScaleOption } from "@/components/selector/ToppingSelector";
-import { DonateSelector, type ScaleOption as DonateScaleOption } from "@/components/selector/DonateSelector";
+import {
+  SweetSelector,
+  type ScaleOption as SweetScaleOption,
+} from "@/components/selector/SweetSelector";
+import {
+  ToppingSelector,
+  type ScaleOption as ToppingScaleOption,
+} from "@/components/selector/ToppingSelector";
+import {
+  DonateSelector,
+  type ScaleOption as DonateScaleOption,
+} from "@/components/selector/DonateSelector";
 import { useRouter } from "next/navigation";
 
 interface Order {
@@ -27,9 +36,15 @@ interface MenuItem {
   category?: string;
 }
 
-export default function ChaChakPage() {
+export type TeaOrder = {
+  customerName: string;
+  sweet: SweetScaleOption;
+  topping: ToppingScaleOption;
+  donate: DonateScaleOption;
+};
 
-  const router = useRouter()
+export default function ChaChakPage() {
+  const router = useRouter();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [menu, setMenu] = useState<MenuItem[] | null>(null);
@@ -39,10 +54,11 @@ export default function ChaChakPage() {
   const [inputName, setInputName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [price, setPrice] = useState<Number>(49)
-  const [sweet, setSweet] = useState<SweetScaleOption>("100%")
-  const [topping, setTopping] = useState<ToppingScaleOption>("ไม่ใส่")
-  const [donate, setDonate] = useState<DonateScaleOption>("0฿")
+  const [price, setPrice] = useState<Number>(49);
+  const [orderCount, setOrderCount] = useState<number>(1);
+  const [sweet, setSweet] = useState<SweetScaleOption>("100%");
+  const [topping, setTopping] = useState<ToppingScaleOption>("ไม่ใส่");
+  const [donate, setDonate] = useState<DonateScaleOption>("0฿");
 
   const [loadError, setLoadError] = useState(false);
 
@@ -119,7 +135,7 @@ export default function ChaChakPage() {
   }, [order?.status]);
 
   useEffect(() => {
-    console.log("change")
+    console.log("change");
 
     let price = 49;
 
@@ -128,8 +144,8 @@ export default function ChaChakPage() {
     }
 
     price += Number(donate.replace(/[^\d]/g, "")) || 0;
-    setPrice(price)
-  }, [sweet, topping, donate])
+    setPrice(price);
+  }, [sweet, topping, donate]);
 
   async function handleOrder() {
     if (!selectedMenu || !inputName.trim() || isSubmitting) return;
@@ -202,6 +218,18 @@ export default function ChaChakPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleNextPay() {
+    const draft: TeaOrder = {
+      customerName: "",
+      sweet: sweet,
+      topping: topping,
+      donate: donate,
+    };
+
+    sessionStorage.setItem("tea_order", JSON.stringify(draft));
+    router.push("/select-payment");
   }
 
   function renderPage() {
@@ -376,43 +404,73 @@ export default function ChaChakPage() {
             </div>
 
             <div className="flex justify-center -translate-y-1/2">
-              <h1 className="font-ekkamaiVibe font-black text-taupe-600 tracking-tighter text-6xl">
+              <h1 className="font-noto-sans-thai font-semibold text-taupe-600 tracking-tight text-6xl">
                 TEH TARIK ชาชัก
               </h1>
             </div>
 
-            <form action="">
-              <div className="flex justify-between bg-white font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
-                <h2 className="text-3xl">เลือกความหวานที่ลงตัว</h2>
-                <div className="flex items-start">
-                  <SweetSelector value={sweet} onChange={(v) => {
-                    setSweet(v)
-                  }} />
-                </div>
+            <div className="flex items-center justify-between bg-white drop-shadow-sm font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
+              <h2 className="text-3xl">เลือกความหวานที่ลงตัว</h2>
+              <div className="flex items-start">
+                <SweetSelector
+                  value={sweet}
+                  onChange={(v) => {
+                    setSweet(v);
+                  }}
+                />
               </div>
+            </div>
 
-              <div className="bg-white font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
-                <h2 className="text-3xl">เลือกท็อปปิ้ง</h2>
-                <ToppingSelector value={topping} onChange={(v) => {
-                    setTopping(v)
-                  }} />
-              </div>
-              <div className="bg-white font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
-                <h2 className="text-3xl">โดเนทให้ผู้พัฒนา</h2>
-                <DonateSelector value={donate} onChange={(v) => {
-                    setDonate(v)
-                  }} />
-              </div>
-            </form>
+            <div className="flex justify-between bg-white drop-shadow-sm items-center font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
+              <h2 className="text-3xl">เลือกท็อปปิ้ง</h2>
+              <ToppingSelector
+                value={topping}
+                onChange={(v) => {
+                  setTopping(v);
+                }}
+              />
+            </div>
+            <div className="flex justify-between items-center bg-white drop-shadow-sm font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
+              <h2 className="text-3xl">โดเนทให้ผู้พัฒนา</h2>
+              <DonateSelector
+                value={donate}
+                onChange={(v) => {
+                  setDonate(v);
+                }}
+              />
+            </div>
           </div>
 
-          <div className="mt-auto p-4 flex items-center justify-end">
+          <div className="mt-auto px-10 pb-10 flex items-center justify-end gap-3">
+            <div className="flex items-center gap-6 rounded-full border border-taupe-600/50 bg-white px-4 py-2 drop-shadow-sm">
+              <button
+                type="button"
+                onClick={() => {
+                  if (orderCount > 0) {
+                    setOrderCount(orderCount - 1);
+                  }
+                }}
+                className="font-kanit flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-zinc-100 p-2 text-4xl leading-none text-taupe-600"
+              >
+                -
+              </button>
+              <span className="flex font-kanit justify-center items-center w-20 text-2xl font-medium text-taupe-600">
+                {orderCount} แก้ว
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setOrderCount(orderCount + 1);
+                }}
+                className="font-kanit flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-zinc-100 p-2 text-4xl leading-none text-taupe-600"
+              >
+                +
+              </button>
+            </div>
             <button
               type="button"
-              onClick={() => {
-                router.push("/pay");
-              }}
-              className="font-kanit cursor-pointer text-3xl rounded-full bg-taupe-900 px-10 py-4 text-white shadow hover:bg-taupe-600"
+              onClick={handleNextPay}
+              className="font-kanit cursor-pointer text-2xl rounded-full bg-taupe-900 px-10 py-6 text-white shadow hover:bg-taupe-600"
             >
               ซื้อเลย <span>{price.valueOf()}฿</span>
             </button>

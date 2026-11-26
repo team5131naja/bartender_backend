@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, DM_Sans, Outfit, Kanit } from "next/font/google";
+import { Geist, Geist_Mono, DM_Sans, Outfit, Kanit, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -27,9 +27,8 @@ const EkkamaiVibeFont = localFont({
   ],
 });
 
-const TorsilpLamunFont = localFont({
-  src: "../fonts/TorsilpLamun.ttf",
-  weight: "400"
+const notoThai = Noto_Sans_Thai({
+  variable: "--font-noto-sans-thai"
 })
 
 const geistSans = Geist({
@@ -70,6 +69,7 @@ export default function RootLayout({
         geistSans.variable,
         geistMono.variable,
         KanitFont.variable,
+        notoThai.variable,
         EkkamaiVibeFont.className,
         "font-sans",
         dmSans.variable,
