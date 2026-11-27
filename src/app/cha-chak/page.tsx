@@ -18,6 +18,7 @@ import {
   type ScaleOption as DonateScaleOption,
 } from "@/components/selector/DonateSelector";
 import { useRouter } from "next/navigation";
+import { playSynthTap } from "@/lib/playSynthTap";
 
 interface Order {
   id: number;
@@ -41,6 +42,7 @@ export type TeaOrder = {
   sweet: SweetScaleOption;
   topping: ToppingScaleOption;
   donate: DonateScaleOption;
+  count: number;
 };
 
 export default function ChaChakPage() {
@@ -137,15 +139,15 @@ export default function ChaChakPage() {
   useEffect(() => {
     console.log("change");
 
-    let price = 49;
+    let price = 49 * orderCount;
 
     if (topping == "บุก +5฿") {
-      price += 5;
+      price += 5 * orderCount;
     }
 
     price += Number(donate.replace(/[^\d]/g, "")) || 0;
     setPrice(price);
-  }, [sweet, topping, donate]);
+  }, [sweet, topping, donate, orderCount]);
 
   async function handleOrder() {
     if (!selectedMenu || !inputName.trim() || isSubmitting) return;
@@ -226,6 +228,7 @@ export default function ChaChakPage() {
       sweet: sweet,
       topping: topping,
       donate: donate,
+      count: orderCount,
     };
 
     sessionStorage.setItem("tea_order", JSON.stringify(draft));
@@ -384,93 +387,109 @@ export default function ChaChakPage() {
     // --- Menu Selection ---
     return (
       <div className="flex flex-col min-h-screen bg-zinc-100">
-        <main className="mx-auto flex w-full flex-1 flex-col pt-20">
-          {/* <div className="bg-[#d2761f] h-30"></div> */}
-          <div className="flex flex-col justify-center px-10">
+        <main
+          className="mx-auto flex w-full flex-1 flex-col pt-14"
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <div className="flex px-10 justify-center mt-40">
             {/* Header */}
 
-            {/* Menu Grid */}
-            <div className="relative flex justify-center">
-              {/* วงกลมสีดำขนาดเล็กอยู่ด้านหลัง */}
-              <div className="pointer-events-none absolute top-1/2 left-1/2 z-0 h-90 w-90 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#db8c4d]" />
+            <div className="w-full">
+              <h1 className="text-center text-7xl font-bold text-gray-950 font-noto-sans-thai">
+                แขนกลพร้อมชักแล้ว
+              </h1>
 
-              {/* รูปภาพอยู่ด้านหน้า */}
-              <div className="relative z-10 aspect-square w-full max-w-[360pt] overflow-hidden">
-                <img
-                  src={"/images/ChaChak/chachak2.png"}
-                  className="h-full w-full -translate-y-10 object-cover drop-shadow-xl transition"
-                />
+              {/* Menu Grid */}
+              <div className="relative flex justify-center select-none">
+                {/* วงกลมสีดำขนาดเล็กอยู่ด้านหลัง */}
+                <div className="pointer-events-none absolute top-1/2 left-1/2 z-0 h-90 w-90 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#db8c4d]" />
+
+                {/* รูปภาพอยู่ด้านหน้า */}
+                <div className="relative z-10 aspect-square w-full max-w-[300pt] overflow-hidden select-none">
+                  <img
+                    draggable={false}
+                    src={"/images/ChaChak/chachak2.png"}
+                    className="h-full w-full -translate-y-10 object-cover drop-shadow-xl transition"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-center -translate-y-1/2">
-              <h1 className="font-noto-sans-thai font-semibold text-taupe-600 tracking-tight text-6xl">
-                TEH TARIK ชาชัก
-              </h1>
-            </div>
+            <div className="w-full">
+              <div className="flex justify-center -translate-y-1/2">
+                <h1 className="font-noto-sans-thai font-semibold text-gray-950 tracking-tight text-6xl">
+                  (ชา)ชักมั้ย 49฿
+                </h1>
+              </div>
 
-            <div className="flex items-center justify-between bg-white drop-shadow-sm font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
-              <h2 className="text-3xl">เลือกความหวานที่ลงตัว</h2>
-              <div className="flex items-start">
-                <SweetSelector
-                  value={sweet}
+              <div className="flex items-center justify-between bg-white drop-shadow-sm font-kanit text-gray-950 p-8 rounded-4xl select-none">
+                <h2 className="text-3xl">เลือกความหวานที่ลงตัว</h2>
+                <div className="flex items-start">
+                  <SweetSelector
+                    value={sweet}
+                    onChange={(v) => {
+                      setSweet(v);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-between bg-white drop-shadow-sm items-center font-kanit text-gray-950 p-8 rounded-4xl mt-5">
+                <h2 className="text-3xl">เลือกท็อปปิ้ง</h2>
+                <ToppingSelector
+                  value={topping}
                   onChange={(v) => {
-                    setSweet(v);
+                    setTopping(v);
+                  }}
+                />
+              </div>
+              <div className="flex justify-between items-center bg-white drop-shadow-sm font-kanit text-gray-950 p-8 rounded-4xl mt-5">
+                <h2 className="text-3xl">โดเนทให้ผู้พัฒนา</h2>
+                <DonateSelector
+                  value={donate}
+                  onChange={(v) => {
+                    setDonate(v);
                   }}
                 />
               </div>
             </div>
-
-            <div className="flex justify-between bg-white drop-shadow-sm items-center font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
-              <h2 className="text-3xl">เลือกท็อปปิ้ง</h2>
-              <ToppingSelector
-                value={topping}
-                onChange={(v) => {
-                  setTopping(v);
-                }}
-              />
-            </div>
-            <div className="flex justify-between items-center bg-white drop-shadow-sm font-kanit text-taupe-600 p-8 rounded-4xl mt-5">
-              <h2 className="text-3xl">โดเนทให้ผู้พัฒนา</h2>
-              <DonateSelector
-                value={donate}
-                onChange={(v) => {
-                  setDonate(v);
-                }}
-              />
-            </div>
           </div>
 
           <div className="mt-auto px-10 pb-10 flex items-center justify-end gap-3">
-            <div className="flex items-center gap-6 rounded-full border border-taupe-600/50 bg-white px-4 py-2 drop-shadow-sm">
+            <div className="flex items-center gap-6 rounded-full border border-taupe-600/50 bg-white px-2 py-2 drop-shadow-sm">
               <button
                 type="button"
                 onClick={() => {
-                  if (orderCount > 0) {
+                  if (orderCount > 1) {
                     setOrderCount(orderCount - 1);
                   }
+                  playSynthTap();
                 }}
-                className="font-kanit flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-zinc-100 p-2 text-4xl leading-none text-taupe-600"
+                className="font-kanit flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-zinc-300 transition-all duration-150 ease-out active:bg-zinc-400 active:scale-105 p-2 text-4xl leading-none text-gray-950"
               >
-                -
+                <span className="mb-1">-</span>
               </button>
-              <span className="flex font-kanit justify-center items-center w-20 text-2xl font-medium text-taupe-600">
+              <span className="flex font-kanit justify-center items-center w-20 text-2xl font-medium text-gray-950">
                 {orderCount} แก้ว
               </span>
               <button
                 type="button"
                 onClick={() => {
                   setOrderCount(orderCount + 1);
+                  playSynthTap();
                 }}
-                className="font-kanit flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-zinc-100 p-2 text-4xl leading-none text-taupe-600"
+                className="font-kanit flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-zinc-300 transition-all duration-150 ease-out active:bg-zinc-400 active:scale-105 p-2 text-4xl leading-none text-gray-950"
               >
-                +
+                <span className="mb-1">+</span>
               </button>
             </div>
             <button
               type="button"
-              onClick={handleNextPay}
-              className="font-kanit cursor-pointer text-2xl rounded-full bg-taupe-900 px-10 py-6 text-white shadow hover:bg-taupe-600"
+              onClick={() => {
+                handleNextPay()
+                playSynthTap();
+              }}
+              className="font-kanit cursor-pointer w-62 text-2xl rounded-full bg-black px-10 py-6 text-white shadow active:bg-taupe-600"
             >
               ซื้อเลย <span>{price.valueOf()}฿</span>
             </button>

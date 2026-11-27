@@ -1,5 +1,6 @@
 "use client";
 
+import { playSynthTap } from "@/lib/playSynthTap";
 import { useState } from "react";
 
 const SCALE_OPTIONS = [
@@ -48,7 +49,10 @@ export function SweetSelector({
               role="radio"
               aria-checked={isActive}
               aria-labelledby={`sweet-label-${opt}`}
-              onClick={() => handleSelect(opt)}
+              onClick={() => {
+                handleSelect(opt);
+                playSynthTap();
+              }}
               className={`cursor-pointer w-full rounded-full px-6 py-3 font-medium transition active:scale-95 ${
                 isActive
                   ? "bg-[#b2bb1e] text-white border-2 border-[#b2bb1e]"

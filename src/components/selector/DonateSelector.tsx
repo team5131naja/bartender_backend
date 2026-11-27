@@ -1,5 +1,6 @@
 "use client";
 
+import { playSynthTap } from "@/lib/playSynthTap";
 import { useState } from "react";
 
 const SCALE_OPTIONS = ["0฿", "10฿", "20฿"] as const;
@@ -34,8 +35,11 @@ export function DonateSelector({
             type="button"
             role="radio"
             aria-checked={isActive}
-            onClick={() => handleSelect(opt)}
-             className={`cursor-pointer w-full rounded-full border-2 px-6 py-3 font-medium transition active:scale-95 ${
+            onClick={() => {
+              handleSelect(opt);
+              playSynthTap();
+            }}
+            className={`cursor-pointer w-full rounded-full border-2 px-6 py-3 font-medium transition active:scale-95 ${
               isActive
                 ? "bg-[#b2bb1e] text-white border-[#b2bb1e]"
                 : "bg-transparent text-taupe-600 hover:bg-taupe-600/10 border-taupe-600"

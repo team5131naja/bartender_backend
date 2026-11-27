@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 // import { TeaOrder } from "../cha-chak/page";
 
 interface PriceResponse {
@@ -22,9 +24,13 @@ const SWEET_LABELS: Record<string, string> = {
 };
 
 export default function PaymentPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [draft, setDraft] = useState<any | null>(null);
   const [priceData, setPriceData] = useState<PriceResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const type = searchParams.get("type");
 
   useEffect(() => {
     const raw = sessionStorage.getItem("tea_order");
@@ -45,6 +51,7 @@ export default function PaymentPage() {
             sweet: parsed.sweet,
             donate: parsed.donate,
             topping: parsed.topping,
+            count: parsed.count,
           }),
         });
 
@@ -74,6 +81,97 @@ export default function PaymentPage() {
     return (
       <main className="flex min-h-screen items-center justify-center p-6">
         <p className="text-zinc-500">Loading order...</p>
+      </main>
+    );
+  }
+
+  if (!type) {
+    return (
+      <main className="flex min-h-screen items-center justify-center p-6">
+        <p className="text-zinc-500">Not Found Type</p>
+      </main>
+    );
+  } else if (type == "qr") {
+    return (
+      <main className="flex font-noto-sans-thai min-h-screen flex-col items-center bg-zinc-100 px-6">
+        <div className="mt-60 w-full flex items-center justify-between max-w-6xl">
+          <div>
+            <h1 className="text-center text-7xl font-bold text-black font-noto-sans-thai mb-20">
+              จ่ายด้วยเงินสด
+            </h1>
+
+            <p className="text-center text-9xl font-bold text-black font-noto-sans-thai mb-20">
+              {priceData.totalPrice}฿
+            </p>
+          </div>
+
+          <div className="flex flex-col max-w-lg items-center rounded-2xl border border-zinc-200 bg-white shadow-sm pb-10">
+            <img
+              className="rounded-t-2xl"
+              src="/images/thai-qr-payment.png"
+              alt=""
+            />
+            <QRCodeSVG value={priceData.qrPayload} size={300} level="M" />
+          </div>
+        </div>
+
+        <div className="mt-auto p-10 w-full flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => {
+              router.back();
+            }}
+            className="font-kanit cursor-pointer text-3xl rounded-full bg-black px-10 py-4 text-white shadow hover:bg-taupe-600"
+          >
+            ย้อนกลับ
+          </button>
+
+          <button
+            className="bg-[#b2bb1e] text-white drop-shadow-sm rounded-full font-medium px-10 py-4 text-3xl max-w-md transition-all duration-150 ease-out hover:-translate-y-1 hover:drop-shadow-md active:translate-y-0 active:scale-[0.97] active:bg-black/70 active:drop-shadow-xs"
+            onClick={() => {
+              router.push("/cha-chak");
+            }}
+          >
+            ยืนยันการชำระเงิน
+          </button>
+        </div>
+      </main>
+    );
+  } else if (type == "cash") {
+    return (
+      <main className="flex font-noto-sans-thai min-h-screen flex-col items-center bg-zinc-100 px-6">
+        <div className="mt-60 w-full flex items-center justify-center max-w-6xl">
+          <div>
+            <h1 className="text-center text-7xl font-bold text-black font-noto-sans-thai mb-20">
+              จ่ายด้วยเงินสด
+            </h1>
+
+            <p className="text-center text-9xl font-bold text-black font-noto-sans-thai mb-20">
+              {priceData.totalPrice}฿
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-auto p-10 w-full flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => {
+              router.back();
+            }}
+            className="font-kanit cursor-pointer text-3xl rounded-full bg-black px-10 py-4 text-white shadow hover:bg-taupe-600"
+          >
+            ย้อนกลับ
+          </button>
+
+          <button
+            className="bg-[#b2bb1e] text-white drop-shadow-sm rounded-full font-medium px-10 py-4 text-3xl max-w-md transition-all duration-150 ease-out hover:-translate-y-1 hover:drop-shadow-md active:translate-y-0 active:scale-[0.97] active:bg-black/70 active:drop-shadow-xs"
+            onClick={() => {
+              router.push("/cha-chak");
+            }}
+          >
+            ยืนยันการชำระเงิน
+          </button>
+        </div>
       </main>
     );
   }

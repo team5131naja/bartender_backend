@@ -24,16 +24,18 @@ const TOPPING_PRICES: Record<string, number> = {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { sweet, donate, topping } = body as {
+    const { sweet, donate, topping, count } = body as {
       sweet?: string;
       donate?: string;
       topping?: string;
+      count?: number;
     };
 
     if (
       !sweet ||
       !donate ||
       !topping ||
+      !count ||
       !(sweet in SWEET_PRICES) ||
       !(donate in DONATE_PRICES) ||
       !(topping in TOPPING_PRICES)
@@ -48,7 +50,7 @@ export async function POST(request: Request) {
     const sweetPrice = SWEET_PRICES[sweet];
     const donatePrice = DONATE_PRICES[donate];
     const toppingPrice = TOPPING_PRICES[topping];
-    const totalPrice = basePrice + sweetPrice + donatePrice + toppingPrice;
+    const totalPrice = ((basePrice + sweetPrice + toppingPrice) * count) + donatePrice;
 
     const qrPayload = generatePayload(SHOP_PROMPTPAY_ID, {
       amount: totalPrice,
@@ -60,6 +62,7 @@ export async function POST(request: Request) {
         sweetPrice,
         donatePrice,
         toppingPrice,
+        count,
       },
       totalPrice,
       qrPayload,
